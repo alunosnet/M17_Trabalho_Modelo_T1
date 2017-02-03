@@ -1,0 +1,35 @@
+﻿create table utilizadores(
+	id int identity primary key,
+	email varchar(100) not null,
+	nome varchar(100) not null,
+	morada varchar(100) not null,
+	nif varchar(9) not null,
+	password varchar(64) not null,
+	estado int not null,
+	perfil int not null,
+	lnkRecuperar varchar(36)
+)
+CREATE TABLE Livros
+(
+	[nlivro] INT NOT NULL PRIMARY KEY identity,
+	nome varchar(100),
+	ano int,
+	data_aquisicao date,
+	preco decimal(4,2),
+	estado int
+)
+create table emprestimos(
+	nemprestimo int identity primary key,
+	nlivro int references livros(nlivro),
+	idutilizador int references utilizadores(id),
+	data_emprestimo date,
+	data_devolve date,
+	estado int
+)
+
+create index iemprestimo_livro on emprestimos(nlivro)
+create index iemprestimo_leitor on emprestimos(idutilizador)
+
+Criar o admin:
+INSERT INTO utilizadores(email,nome,morada,nif,password,estado,perfil)
+VALUES ('admin@gmail.com','admin','viseu','123123123',HASHBYTES('SHA2_512','12345'),1,0)
