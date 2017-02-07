@@ -21,6 +21,7 @@ namespace M17_TrabalhoModelo_T1
                 divUtilizadores.Visible = false;
                 divEmprestimos.Visible = false;
             }
+
         }
 #region Livros
         protected void btLivros_Click(object sender, EventArgs e)
