@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.UI;
@@ -34,72 +36,31 @@ namespace M17_TrabalhoModelo_T1
             gvUtilizadores.RowUpdating += new GridViewUpdateEventHandler(gvUtilizadores_RowUpdating);
             gvUtilizadores.RowCreated += new GridViewRowEventHandler(gvUtilizadores_RowCreated);
             gvUtilizadores.RowCommand += new GridViewCommandEventHandler(gvUtilizadores_RowCommand);
+
+            //grelha dos empréstimos
+            gvEmprestimos.RowCommand += new GridViewCommandEventHandler(gvEmprestimos_RowCommand);
         }
 
-        private void gvUtilizadores_RowCommand(object sender, GridViewCommandEventArgs e)
+        private void gvEmprestimos_RowCommand(object sender, GridViewCommandEventArgs e)
         {
             int linha = int.Parse(e.CommandArgument as string);
-            int id = int.Parse(gvUtilizadores.Rows[linha].Cells[3].Text);
-            if (e.CommandName == "estado")
+            int id = int.Parse(gvEmprestimos.Rows[linha].Cells[2].Text);
+            if (e.CommandName == "receber")
             {
-                BaseDados.Instance.ativarDesativarUtilizador(id);
-                atualizaGrelhaUtilizadores();
+                BaseDados.Instance.concluirEmprestimo(id);
+                atualizaGrelhaEmprestimos();
+                atualizaDDLivros();
             }
-            if (e.CommandName == "histórico")
+            if (e.CommandName == "email")
             {
-                //TODO: mostrar histórico do leitor
+                DataTable dadosEmprestimo = BaseDados.Instance.devolveDadosEmprestimo(id);
+                int idUtilizador = int.Parse(dadosEmprestimo.Rows[0]["idutilizador"].ToString());
+                DataTable dadosUtilizador = BaseDados.Instance.devolveDadosUtilizador(idUtilizador);
+                string email = dadosUtilizador.Rows[0]["email"].ToString();
+                string password = ConfigurationManager.AppSettings["senha"].ToString();
+                Helper.enviarMail("alunosnet@gmail.com", password, email, "Livro emprestado",
+                    "Caro leitor deve devolver o livro que tem emprestado");
             }
-        }
-
-        private void gvUtilizadores_RowCreated(object sender, GridViewRowEventArgs e)
-        {
-            foreach(TableCell coluna in e.Row.Cells)
-            {
-                if(coluna.Text!="" && coluna.Text!="&nbsp;" && coluna.Text!="Ativar/Desativar"
-                    && coluna.Text != "Histórico")
-                {
-                    BoundField campo = (BoundField)((DataControlFieldCell)coluna).ContainingField;
-                    if (campo.DataField == "id" || campo.DataField == "estado" || campo.DataField == "perfil")
-                        campo.ReadOnly = true;
-                }
-            }
-        }
-
-        private void gvUtilizadores_RowUpdating(object sender, GridViewUpdateEventArgs e)
-        {
-            int linha = e.RowIndex;
-            int id = int.Parse(gvUtilizadores.Rows[linha].Cells[3].Text);
-            string email = ((TextBox)gvUtilizadores.Rows[linha].Cells[3].Controls[0]).Text;
-            string nome = ((TextBox)gvUtilizadores.Rows[linha].Cells[4].Controls[0]).Text;
-            string morada = ((TextBox)gvUtilizadores.Rows[linha].Cells[5].Controls[0]).Text;
-            string nif = ((TextBox)gvUtilizadores.Rows[linha].Cells[6].Controls[0]).Text;
-            //validar dados
-            //atualizar a bd
-            BaseDados.Instance.atualizarUtilizador(id, nome, email, morada, nif);
-            gvUtilizadores.EditIndex = -1;
-            atualizaGrelhaUtilizadores();
-        }
-
-        private void gvUtilizadores_RowCancelingEdit(object sender, GridViewCancelEditEventArgs e)
-        {
-            gvUtilizadores.EditIndex = -1;
-            atualizaGrelhaUtilizadores();
-        }
-
-        private void gvUtilizadores_RowEditing(object sender, GridViewEditEventArgs e)
-        {
-            int linha = e.NewEditIndex;
-            gvUtilizadores.EditIndex = linha;
-            atualizaGrelhaUtilizadores();
-        }
-
-        private void gvUtilizadores_RowDeleting(object sender, GridViewDeleteEventArgs e)
-        {
-            //eliminar utilizador
-            int linha = e.RowIndex;
-            string id = gvUtilizadores.Rows[linha].Cells[3].Text;
-            BaseDados.Instance.removerUtilizador(int.Parse(id));
-            atualizaGrelhaUtilizadores();
         }
 
         #region Livros
@@ -110,10 +71,10 @@ namespace M17_TrabalhoModelo_T1
         }
         protected void btLivros_Click(object sender, EventArgs e)
         {
+            Response.CacheControl = "no-cache";
             divLivros.Visible = true;
             divUtilizadores.Visible = false;
             divEmprestimos.Visible = false;
-            Response.CacheControl = "no-cache";
             btLivros.CssClass = "btn btn-info active";
             btUtilizador.CssClass = "btn btn-info";
             btEmprestimos.CssClass = "btn btn-info";
@@ -231,7 +192,8 @@ namespace M17_TrabalhoModelo_T1
             //capa
             ImageField ifCapa = new ImageField();
             ifCapa.HeaderText = "Capa";
-            ifCapa.DataImageUrlFormatString = "~/Imagens/{0}.jpg";
+            int rand = new Random().Next(999999999);
+            ifCapa.DataImageUrlFormatString = "~/Imagens/{0}.jpg?"+rand;
             ifCapa.DataImageUrlField = "nlivro";
             ifCapa.ControlStyle.Width = 100;
             gvLivros.Columns.Add(ifCapa);
@@ -274,13 +236,79 @@ namespace M17_TrabalhoModelo_T1
 
         protected void btUtilizador_Click(object sender, EventArgs e)
         {
+            Response.CacheControl = "no-cache";
             divLivros.Visible = false;
             divUtilizadores.Visible = true;
             divEmprestimos.Visible = false;
-            Response.CacheControl = "no-cache";
             btLivros.CssClass = "btn btn-info";
             btUtilizador.CssClass = "btn btn-info active";
             btEmprestimos.CssClass = "btn btn-info";
+            atualizaGrelhaUtilizadores();
+        }
+
+        private void gvUtilizadores_RowCommand(object sender, GridViewCommandEventArgs e)
+        {
+            int linha = int.Parse(e.CommandArgument as string);
+            int id = int.Parse(gvUtilizadores.Rows[linha].Cells[3].Text);
+            if (e.CommandName == "estado")
+            {
+                BaseDados.Instance.ativarDesativarUtilizador(id);
+                atualizaGrelhaUtilizadores();
+            }
+            if (e.CommandName == "histórico")
+            {
+                Response.Redirect("historicoLeitor.aspx?id=" + id);
+            }
+        }
+
+        private void gvUtilizadores_RowCreated(object sender, GridViewRowEventArgs e)
+        {
+            foreach (TableCell coluna in e.Row.Cells)
+            {
+                if (coluna.Text != "" && coluna.Text != "&nbsp;" && coluna.Text != "Ativar/Desativar"
+                    && coluna.Text != "Histórico")
+                {
+                    BoundField campo = (BoundField)((DataControlFieldCell)coluna).ContainingField;
+                    if (campo.DataField == "id" || campo.DataField == "estado" || campo.DataField == "perfil")
+                        campo.ReadOnly = true;
+                }
+            }
+        }
+
+        private void gvUtilizadores_RowUpdating(object sender, GridViewUpdateEventArgs e)
+        {
+            int linha = e.RowIndex;
+            int id = int.Parse(gvUtilizadores.Rows[linha].Cells[3].Text);
+            string email = ((TextBox)gvUtilizadores.Rows[linha].Cells[3].Controls[0]).Text;
+            string nome = ((TextBox)gvUtilizadores.Rows[linha].Cells[4].Controls[0]).Text;
+            string morada = ((TextBox)gvUtilizadores.Rows[linha].Cells[5].Controls[0]).Text;
+            string nif = ((TextBox)gvUtilizadores.Rows[linha].Cells[6].Controls[0]).Text;
+            //validar dados
+            //atualizar a bd
+            BaseDados.Instance.atualizarUtilizador(id, nome, email, morada, nif);
+            gvUtilizadores.EditIndex = -1;
+            atualizaGrelhaUtilizadores();
+        }
+
+        private void gvUtilizadores_RowCancelingEdit(object sender, GridViewCancelEditEventArgs e)
+        {
+            gvUtilizadores.EditIndex = -1;
+            atualizaGrelhaUtilizadores();
+        }
+
+        private void gvUtilizadores_RowEditing(object sender, GridViewEditEventArgs e)
+        {
+            int linha = e.NewEditIndex;
+            gvUtilizadores.EditIndex = linha;
+            atualizaGrelhaUtilizadores();
+        }
+
+        private void gvUtilizadores_RowDeleting(object sender, GridViewDeleteEventArgs e)
+        {
+            //eliminar utilizador
+            int linha = e.RowIndex;
+            string id = gvUtilizadores.Rows[linha].Cells[3].Text;
+            BaseDados.Instance.removerUtilizador(int.Parse(id));
             atualizaGrelhaUtilizadores();
         }
 
@@ -317,13 +345,13 @@ namespace M17_TrabalhoModelo_T1
             gvUtilizadores.DataBind();
         }
         #endregion
-
+        #region empréstimos
         protected void btEmprestimos_Click(object sender, EventArgs e)
         {
+            Response.CacheControl = "no-cache";
             divLivros.Visible = false;
             divUtilizadores.Visible = false;
             divEmprestimos.Visible = true;
-            Response.CacheControl = "no-cache";
             btLivros.CssClass = "btn btn-info";
             btUtilizador.CssClass = "btn btn-info";
             btEmprestimos.CssClass = "btn btn-info active";
@@ -334,22 +362,83 @@ namespace M17_TrabalhoModelo_T1
 
         private void atualizaDDLeitores()
         {
-            
+            ddUtilizador.Items.Clear();
+
+            DataTable dados = BaseDados.Instance.listaUtilizadoresDisponiveis();
+            foreach(DataRow leitor in dados.Rows)
+            {
+                ddUtilizador.Items.Add(new ListItem(leitor[2].ToString(),
+                    leitor[0].ToString()));
+            }
         }
 
         private void atualizaDDLivros()
         {
-            throw new NotImplementedException();
+            ddLivro.Items.Clear();
+            DataTable dados = BaseDados.Instance.listaLivrosDisponiveis();
+            foreach(DataRow livro in dados.Rows)
+            {
+                ddLivro.Items.Add(new ListItem(livro[1].ToString(),
+                    livro[0].ToString()));
+            }
         }
 
         private void atualizaGrelhaEmprestimos()
         {
-            
+            gvEmprestimos.Columns.Clear();
+            gvEmprestimos.DataSource = null;
+            gvEmprestimos.DataBind();
+
+            DataTable dados;
+
+            if (cbEmprestimosPorConcluir.Checked)
+                dados = BaseDados.Instance.listaTodosEmprestimosPorConcluirComNomes();
+            else
+                dados = BaseDados.Instance.listaTodosEmprestimosComNomes();
+            if (dados == null || dados.Rows.Count == 0) return;
+
+            //receber livro
+            ButtonField bfReceberLivro = new ButtonField();
+            bfReceberLivro.HeaderText = "Receber livro";
+            bfReceberLivro.Text = "Receber";
+            bfReceberLivro.ButtonType = ButtonType.Button;
+            bfReceberLivro.CommandName = "receber";
+            gvEmprestimos.Columns.Add(bfReceberLivro);
+
+            //enviar email
+            ButtonField bfEnviarEmail = new ButtonField();
+            bfEnviarEmail.HeaderText = "Enviar email";
+            bfEnviarEmail.Text = "Email";
+            bfEnviarEmail.ButtonType = ButtonType.Button;
+            bfEnviarEmail.CommandName = "email";
+            gvEmprestimos.Columns.Add(bfEnviarEmail);
+
+            gvEmprestimos.DataSource = dados;
+            gvEmprestimos.AutoGenerateColumns = true;
+            gvEmprestimos.DataBind();
         }
 
         protected void btAdicionarEmprestimo_Click(object sender, EventArgs e)
         {
+            try
+            {
+                int idLeitor = int.Parse(ddUtilizador.SelectedValue);
+                int idLivro = int.Parse(ddLivro.SelectedValue);
+                DateTime data = clData.SelectedDate;
+                BaseDados.Instance.adicionarEmprestimo(idLivro, idLeitor, data);
+                atualizaGrelhaEmprestimos();
+                atualizaDDLivros();
+            }catch(Exception erro)
+            {
+                lbErroEmprestimo.Text = "Ocorreu o seguinte erro: " + erro.Message;
+                lbErroEmprestimo.CssClass = "alert alert-danger";
+            }
+        }
+        #endregion
 
+        protected void cbEmprestimosPorConcluir_CheckedChanged(object sender, EventArgs e)
+        {
+            atualizaGrelhaEmprestimos();
         }
     }
 }

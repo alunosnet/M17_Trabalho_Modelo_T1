@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Linq;
 using System.Web;
@@ -42,7 +43,36 @@ namespace M17_TrabalhoModelo_T1
         //recuperar
         protected void btRecuperar_Click(object sender, EventArgs e)
         {
+            try
+            {
+                if (tbEmail.Text == String.Empty)
+                    throw new Exception("Tem de indicar um email");
+                //verificar se o email existe
+                string email = tbEmail.Text;
+                DataTable dados = BaseDados.Instance.devolveDadosUtilizador(email);
+                if (dados == null || dados.Rows.Count == 0)
+                    throw new Exception("");
 
+                //GUID
+                Guid g = Guid.NewGuid();
+
+                //guardar guid na bd
+                BaseDados.Instance.recuperarPassword(email, g.ToString());
+                //enviar email com guid
+                string mensagem = "Clique no link para recuperar a sua password.\n";
+                mensagem += "<a href='http://" + Request.Url.Authority + "/recuperarPassword.aspx?id=";
+                mensagem += Server.UrlEncode(g.ToString()) + "'>Clique aqui</a>";
+                string senha = ConfigurationManager.AppSettings["senha"].ToString();
+                Helper.enviarMail("alunosnet@gmail.com", senha, email, "Recuperação de password", mensagem);
+                lbErro.Text = "Foi enviado um email.";
+                lbErro.CssClass = "alert alert-success";
+            }
+            catch(Exception erro)
+            {
+                lbErro.Text = erro.Message;
+                if (erro.Message != String.Empty)
+                    lbErro.CssClass = "alert alert-danger";
+            }
         }
     }
 }

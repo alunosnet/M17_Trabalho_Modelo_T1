@@ -59,7 +59,7 @@ namespace M17_TrabalhoModelo_T1
                         fuCapa.SaveAs(ficheiro);
                     }
                 }
-                Response.CacheControl = "no-cache";
+              //  Response.CacheControl = "no-cache";
                 Response.Redirect("areaadmin.aspx");
             }
             catch (Exception erro)
