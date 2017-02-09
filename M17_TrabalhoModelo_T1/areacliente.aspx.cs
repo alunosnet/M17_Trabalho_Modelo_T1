@@ -11,6 +11,7 @@ namespace M17_TrabalhoModelo_T1
     {
         protected void Page_Load(object sender, EventArgs e)
         {
+            
             if (Session["perfil"] == null)
                 Response.Redirect("index.aspx");
             //verificar se é a primeira vez que a página é pedida
@@ -46,7 +47,7 @@ namespace M17_TrabalhoModelo_T1
             {
                 BaseDados.Instance.concluirEmprestimo(id);
                 Response.CacheControl = "no-cache";
-                atualizaGrelhaEmprestimo();
+                atualizaGrelhaDevolve();
             }
         }
 
@@ -104,6 +105,8 @@ namespace M17_TrabalhoModelo_T1
         private void atualizaGrelhaDevolve()
         {
             gvDevolver.Columns.Clear();
+            gvDevolver.DataSource = null;
+            gvDevolver.DataBind();
 
             int idUtilizador = int.Parse(Session["id"].ToString());
             gvDevolver.DataSource = BaseDados.Instance.listaTodosEmprestimosPorConcluirComNomes(idUtilizador);
