@@ -8,6 +8,7 @@
         <asp:Button runat="server" ID="btLivros" Text="Gerir Livros" CssClass="btn btn-info" OnClick="btLivros_Click" />
         <asp:Button runat="server" ID="btUtilizador" Text="Gerir Utilizadores" CssClass="btn btn-info" OnClick="btUtilizador_Click" />
         <asp:Button runat="server" ID="btEmprestimos" Text="Gerir Empréstimos" CssClass="btn btn-info" OnClick="btEmprestimos_Click" />
+        <asp:Button runat="server" ID="btConsultas" Text="Consultas" CssClass="btn btn-info" OnClick="btConsultas_Click" />
     </div>
     <div id="divLivros" runat="server">
         <h2>Livros</h2>
@@ -93,5 +94,14 @@
         </div>
         <asp:Button runat="server" ID="btAdicionarEmprestimo" Text="Adicionar" CssClass="btn btn-success" OnClick="btAdicionarEmprestimo_Click" />
         <asp:Label runat="server" ID="lbErroEmprestimo"></asp:Label>
+    </div>
+    <div id="divConsultas" runat="server">
+        <asp:DropDownList CssClass="form-control" runat="server" ID="ddEscolhaConsulta" AutoPostBack="true" OnSelectedIndexChanged="ddEscolhaConsulta_SelectedIndexChanged">
+            <asp:ListItem Value="1">Top de Leitores</asp:ListItem> 
+            <asp:ListItem Value="2">Top de Livros</asp:ListItem> 
+            <asp:ListItem Value="3">Empréstimos fora de prazo</asp:ListItem>
+            <asp:ListItem Value="4">Pessoas online</asp:ListItem>  
+        </asp:DropDownList>
+        <asp:GridView CssClass="table table-responsive" ID="gvConsultas" runat="server"></asp:GridView>
     </div>
 </asp:Content>

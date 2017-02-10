@@ -10,4 +10,11 @@
         <asp:Button ID="btRecuperar" runat="server" Text="Recuperar Password" CssClass="btn btn-danger" OnClick="btRecuperar_Click" />
         <asp:Label ID="lbErro" runat="server"></asp:Label>
     </div>
+    <div class="pull-left col-md-4 col-sm-4 input-group">
+        <asp:TextBox  runat="server" ID="tbPesquisa" CssClass="form-control" />
+        <span class="input-group-btn">
+            <asp:Button Text="Pesquisar" ID="btPesquisa" runat="server" CssClass="btn btn-info" OnClick="btPesquisa_Click" />
+        </span>
+    </div>
+    <div id="divLivros" runat="server" class="pull-left col-md-9"></div>
 </asp:Content>

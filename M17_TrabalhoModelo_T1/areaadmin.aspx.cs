@@ -22,6 +22,7 @@ namespace M17_TrabalhoModelo_T1
                 divLivros.Visible = false;
                 divUtilizadores.Visible = false;
                 divEmprestimos.Visible = false;
+                divConsultas.Visible = false;
             }
 
             ///////////////////////////////////////////////////EVENTOS
@@ -75,9 +76,11 @@ namespace M17_TrabalhoModelo_T1
             divLivros.Visible = true;
             divUtilizadores.Visible = false;
             divEmprestimos.Visible = false;
+            divConsultas.Visible = false;
             btLivros.CssClass = "btn btn-info active";
             btUtilizador.CssClass = "btn btn-info";
             btEmprestimos.CssClass = "btn btn-info";
+            btConsultas.CssClass = "btn btn-info";
             atualizaGrelhaLivros();
         }
         protected void btAdicionarLivro_Click(object sender, EventArgs e)
@@ -240,9 +243,11 @@ namespace M17_TrabalhoModelo_T1
             divLivros.Visible = false;
             divUtilizadores.Visible = true;
             divEmprestimos.Visible = false;
+            divConsultas.Visible = false;
             btLivros.CssClass = "btn btn-info";
             btUtilizador.CssClass = "btn btn-info active";
             btEmprestimos.CssClass = "btn btn-info";
+            btConsultas.CssClass = "btn btn-info";
             atualizaGrelhaUtilizadores();
         }
 
@@ -351,10 +356,12 @@ namespace M17_TrabalhoModelo_T1
             Response.CacheControl = "no-cache";
             divLivros.Visible = false;
             divUtilizadores.Visible = false;
+            divConsultas.Visible = false;
             divEmprestimos.Visible = true;
             btLivros.CssClass = "btn btn-info";
             btUtilizador.CssClass = "btn btn-info";
             btEmprestimos.CssClass = "btn btn-info active";
+            btConsultas.CssClass = "btn btn-info";
             atualizaGrelhaEmprestimos();
             atualizaDDLivros();
             atualizaDDLeitores();
@@ -439,6 +446,59 @@ namespace M17_TrabalhoModelo_T1
         protected void cbEmprestimosPorConcluir_CheckedChanged(object sender, EventArgs e)
         {
             atualizaGrelhaEmprestimos();
+        }
+
+        protected void btConsultas_Click(object sender, EventArgs e)
+        {
+            Response.CacheControl = "no-cache";
+            divLivros.Visible = false;
+            divUtilizadores.Visible = false;
+            divEmprestimos.Visible = false;
+            divConsultas.Visible = true;
+            btLivros.CssClass = "btn btn-info";
+            btUtilizador.CssClass = "btn btn-info";
+            btEmprestimos.CssClass = "btn btn-info";
+            btConsultas.CssClass = "btn btn-info active";
+        }
+
+        protected void ddEscolhaConsulta_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            atualizaGrelhaConsultas();
+        }
+
+        private void atualizaGrelhaConsultas()
+        {
+            gvConsultas.Columns.Clear();
+            int iconsulta = int.Parse(ddEscolhaConsulta.SelectedValue);
+            DataTable dados;
+            string sql = "";
+            switch (iconsulta)
+            {
+                case 1: sql = @"SELECT utilizadores.nome,count(*) as n_emprestimos
+                                FROM utilizadores inner join emprestimos
+                                ON utilizadores.id=emprestimos.idutilizador
+                                GROUP by emprestimos.idutilizador,nome
+                                ORDER by n_emprestimos DESC";
+                    break;
+                case 2: sql = @"SELECT nome,count(*) as n_emprestimos
+                                FROM livros inner join emprestimos
+                                ON livros.nlivro=emprestimos.nlivro
+                                GROUP BY emprestimos.nlivro,nome
+                                ORDER BY n_emprestimos DESC";
+                    break;
+                case 3: sql = @"SELECT nemprestimo,livros.nome as nome_livro,
+                            utilizadores.nome as nome_leitor,data_devolve 
+                            FROM emprestimos inner join livros on 
+                            emprestimos.nlivro=livros.nlivro
+                            inner join utilizadores on emprestimos.idutilizador=utilizadores.id
+                            WHERE data_devolve<getdate() AND emprestimos.estado=1";
+                    break;
+                case 4: sql = @"SELECT email,nome FROM utilizadores WHERE online=1";
+                    break;
+            }
+            dados = BaseDados.Instance.devolveConsulta(sql);
+            gvConsultas.DataSource = dados;
+            gvConsultas.DataBind();
         }
     }
 }

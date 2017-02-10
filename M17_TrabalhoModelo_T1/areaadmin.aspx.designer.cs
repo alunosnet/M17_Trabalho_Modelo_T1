@@ -40,6 +40,15 @@ namespace M17_TrabalhoModelo_T1 {
         protected global::System.Web.UI.WebControls.Button btEmprestimos;
         
         /// <summary>
+        /// btConsultas control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btConsultas;
+        
+        /// <summary>
         /// divLivros control.
         /// </summary>
         /// <remarks>
@@ -290,5 +299,32 @@ namespace M17_TrabalhoModelo_T1 {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Label lbErroEmprestimo;
+        
+        /// <summary>
+        /// divConsultas control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.HtmlControls.HtmlGenericControl divConsultas;
+        
+        /// <summary>
+        /// ddEscolhaConsulta control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.DropDownList ddEscolhaConsulta;
+        
+        /// <summary>
+        /// gvConsultas control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.GridView gvConsultas;
     }
 }

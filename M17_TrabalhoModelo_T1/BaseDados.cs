@@ -237,6 +237,9 @@ namespace M17_TrabalhoModelo_T1
             DataTable utilizador = devolveConsulta(sql, parametros);
             if (utilizador == null || utilizador.Rows.Count == 0)
                 return null;
+            string id = utilizador.Rows[0]["id"].ToString();
+            sql = "UPDATE Utilizadores SET [online]=1 WHERE id="+id;
+            executaComando(sql);
             return utilizador;
         }
 
@@ -273,7 +276,7 @@ namespace M17_TrabalhoModelo_T1
         }
         public void atualizarPassword(string guid, string password)
         {
-            string sql = "UPDATE utilizadores set password=HASHBYTES('SHA2_512',@password),estado=1 WHERE lnkRecuperar=@lnk";
+            string sql = "UPDATE utilizadores set password=HASHBYTES('SHA2_512',@password),estado=1,lnkRecuperar=null WHERE lnkRecuperar=@lnk";
 
             List<SqlParameter> parametros = new List<SqlParameter>()
             {

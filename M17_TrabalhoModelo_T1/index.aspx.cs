@@ -15,7 +15,45 @@ namespace M17_TrabalhoModelo_T1
         {
             if (Session["id"] != null)
                 divLogin.Visible = false;
-            //TODO: listar os livros disponíveis
+            //listar os livros disponíveis
+            if (!IsPostBack)
+            {
+                DataTable dados;
+                HttpCookie cookie = Request.Cookies["ultimolivro"] as HttpCookie;
+                try
+                {
+                    int id = int.Parse(cookie.Value);
+                    dados = BaseDados.Instance.listaLivrosComPrecoInferior(id);
+                }
+                catch
+                {
+                     dados = BaseDados.Instance.devolveConsulta("SELECT nlivro,nome,preco FROM livros WHERE estado=1");
+                }
+                atualizaDivLivros(dados);
+            }
+        }
+
+        private void atualizaDivLivros(DataTable dados)
+        {
+            if(dados==null || dados.Rows.Count == 0)
+            {
+                divLivros.InnerHtml = "";
+                return;
+            }
+            string grelha = "<div class='container-fluid'>";
+            grelha += "<div class='row'>";
+            foreach(DataRow livro in dados.Rows)
+            {
+                grelha += "<div class='col-md-4 text-center'>";
+                grelha += "<img src='/Imagens/" + livro[0].ToString() + ".jpg' class='img-responsive'/>";
+                grelha += "<span class='stat-title'>" + livro[1].ToString() + "</span>";
+                grelha += "<span class='stat-title'>" +String.Format(" | {0:C}", Decimal.Parse(livro["preco"].ToString())) + "</span>";
+                grelha += "<br/><a href='detalheslivro.aspx?id=" + livro[0].ToString() + "'>Detalhes</a>";
+                grelha += "</div>";
+            }
+
+            grelha += "</div></div>";
+            divLivros.InnerHtml = grelha;
         }
         //login
         protected void btLogin_Click(object sender, EventArgs e)
@@ -73,6 +111,13 @@ namespace M17_TrabalhoModelo_T1
                 if (erro.Message != String.Empty)
                     lbErro.CssClass = "alert alert-danger";
             }
+        }
+
+        protected void btPesquisa_Click(object sender, EventArgs e)
+        {
+            string livro = tbPesquisa.Text;
+            DataTable dados = BaseDados.Instance.pesquisaLivrosPeloNome(livro);
+            atualizaDivLivros(dados);
         }
     }
 }
